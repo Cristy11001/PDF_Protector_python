@@ -1,4 +1,4 @@
-import PyPDF2
+import pypdf
 import sys
 import os
 
@@ -16,21 +16,22 @@ def protect_pdf(input_file, output_file, password):
         
         # Open and process the PDF
         with open(input_file, 'rb') as file:
-            pdf_reader = PyPDF2.PdfReader(file)
-            pdf_writer = PyPDF2.PdfWriter()
+            pdf_reader = pypdf.PdfReader(file)
+            pdf_writer = pypdf.PdfWriter()
             
             # Copy all pages
             for page in pdf_reader.pages:
                 pdf_writer.add_page(page)
             
-            # Add password
-            pdf_writer.encrypt(password)
+            # Add password protection
+            pdf_writer.encrypt(user_password=password, use_128bit=True)
             
             # Save protected PDF
             with open(output_file, 'wb') as output:
                 pdf_writer.write(output)
         
-        print(f"Protected PDF created: {output_file}")
+        print(f"✓ Protected PDF created: {output_file}")
+        print(f"✓ Password: {password}")
         return True
         
     except Exception as e:
@@ -43,15 +44,15 @@ def check_protection(pdf_file):
     """
     try:
         with open(pdf_file, 'rb') as file:
-            pdf_reader = PyPDF2.PdfReader(file)
+            pdf_reader = pypdf.PdfReader(file)
             
             if pdf_reader.is_encrypted:
-                print(f"{pdf_file} is password protected")
+                print(f"✓ {pdf_file} is password protected")
             else:
-                print(f"{pdf_file} is not password protected")
+                print(f"✗ {pdf_file} is not password protected")
                 
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error checking protection: {e}")
 
 def main():
     """
@@ -79,6 +80,13 @@ def main():
         output_pdf = sys.argv[3]
         password = sys.argv[4]
         
+        # Use different filenames
+        if input_pdf == output_pdf:
+            print("Error: Input and output files cannot be the same!")
+            print("Use different filenames, e.g.:")
+            print(f"python pdf_tool.py protect {input_pdf} {input_pdf.replace('.pdf', '_protected.pdf')} {password}")
+            return
+            
         protect_pdf(input_pdf, output_pdf, password)
     
     elif action == "check":
